@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>MathPad</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 16 16'><text x='0' y='14'>Σ</text></svg>"/>
+<link rel="stylesheet" type="text/css" href="http://mathquill.com/lib/mathquill.css">
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://mathquill.com/lib/mathquill.js"></script>
+</head>
+<style>
+#choose_file {
+    background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 22 16'><text x='0' y='14'>🗁</text></svg>") no-repeat;
+    color: transparent;
+    border: 1px solid grey;
+    border-radius: 4px;
+    background-position: center center;
+}
+.menu * {
+    font-size: 20px;
+}
+</style>
+
+<body>
+<div class="menu" style="background: #eee; padding: 1px 1ch;">
+<select id="choose_file" onclick="list_files(url='list'); this.value = filepath.value" onchange="filepath.value = this.value; open_file()" style="width: 25px;">
+  </select><input type="entry" id="filepath" oninput="save.disabled = false">
+  <input id="save" type="button" onclick="cmdinfo.innerHTML = 'saving '+filepath.value; put(filepath.value, foo2text())" value="🖫 save">
+  <a href="mathpad.txt" download='mathpad.txt' id="download_link" onmousedown='document.getElementById("download_link").href = "data:text/plain," + encodeURI(foo2text());' style="text-decoration: none;color: black;">⭳</a>
+  <a href="https://github.com/mzechmeister/mathpad" style="float: right;"><img src="https://github.com/favicon.ico" style="vertical-align: middle; height: 20px;"></a>
+</div>
+
+<p id="foo" contenteditable="true" style="white-space: pre-wrap;">type two $ to enter mathmode</p>
+
+LaTeX: <code id="content"></code>
+<div id="cmdinfo" style="background: #eee;padding: 0ch 1ch; font-family: 'Mono'"></div>
+
+<script>
+
+function foo2text() {
+    text = ''
+    for (x of [...foo.childNodes]) {
+        if (x.editor) {text += '$'+x.editor.latex()+'$'}
+        else if (x.textContent) text += x.textContent
+    }
+    return text
+}
+
+function text2foo() {
+    foo.innerHTML = ''
+    for (const [i,x] of content.innerHTML.split("$").entries()) {
+        if (i%2) {aa = create_mq(x)}
+        else {aa = document.createTextNode(x)}
+        foo.append(aa)
+    }
+}
+
+function create_mq(contenttext='') {
+    mqSpan = document.createElement('span')
+    MQ = MathQuill.getInterface(2)
+    var mq = MQ.MathField(mqSpan, {
+               spaceBehavesLikeTab: true, // configurable
+               handlers: {
+                   edit: function() { // useful event handlers
+                       content.innerHTML = mq.latex(); // simple API
+                   }
+               }
+    })
+    if (contenttext) mq.latex(contenttext)
+    mqSpan.editor = mq
+    mqSpan.onfocus = () => content.innerHTML = mq.latex()
+    return mqSpan
+}
+
+// insert mathmode for short cut $$
+foo.oninput = (e) => {
+    save.disabled = false
+    sel = window.getSelection()
+    range = sel.getRangeAt(0);
+    if (e.data == '$' && range.startContainer.textContent.substr(range.startOffset-2,2)  == '$$') {
+        range.setStart(range.startContainer, range.startOffset-2)
+        range.deleteContents();
+        mqSpan = create_mq()
+        range.insertNode(mqSpan)
+        mqSpan.editor.focus()
+    }
+}
+
+// handle cursor transition into and out of MQ
+foo.addEventListener("keydown", e=> {
+    mqcursor = document.querySelector(".mq-cursor")
+    sel = window.getSelection()
+    if (e.key=="ArrowLeft") {
+        if (mqcursor) {
+            if (mqcursor.parentElement.firstChild == mqcursor) {
+                foo.focus()
+                prev = e.target.parentElement.parentElement.previousSibling
+                set_caret(prev, prev.length)
+            }
+            return
+        }
+        else {
+            prev = sel.anchorNode.previousElementSibling;
+            if (prev && sel.anchorOffset==0 && prev.classList.contains("mq-editable-field")) {
+                prev.editor.focus()
+                prev.editor.moveToRightEnd()
+            }
+        }
+    }
+    if (e.key=="ArrowRight") {
+        if (mqcursor) {
+            if (mqcursor.parentElement.lastChild == mqcursor) {
+                foo.focus()
+                next = e.target.parentElement.parentElement.nextSibling
+                set_caret(next, 0)
+            }
+            return
+        }
+        else {
+            next = sel.anchorNode.nextElementSibling;
+            if (next && sel.anchorOffset==sel.anchorNode.data.length && next.classList.contains("mq-editable-field")) {
+                next.editor.focus()
+                next.editor.moveToLeftEnd()
+            }
+        }
+    }
+}, true)   // true: must be triggered before mq moves cursor
+
+function set_caret(elem, pos) {
+    range = document.createRange()
+    range.setStart(elem, pos)
+    range.collapse(true)
+    sel.removeAllRanges()
+    sel.addRange(range)
+}
+
+function tabulate_files(data) {
+    if (JSON.stringify([...choose_file.options].map(o => o.value)) == JSON.stringify((data.map(x => x.name)))) return
+    choose_file.innerHTML = ''
+    for (x of data) {
+        opt = document.createElement("option")
+        opt.value = x.name
+        opt.innerHTML = x.name
+        choose_file.append(opt)
+    }
+}
+
+function list_files(url="list") {
+    fetch(url).then(function(response) {
+        return response.json()
+    }).then(function(data) {
+        tabulate_files(data)
+    })
+}
+
+function open_file() {
+    cmdinfo.innerHTML = 'reading ' + filepath.value
+    get('data/'+filepath.value)
+}
+
+function get(filename) {
+    fetch(filename, {cache: "no-store"}).then(function(response) {
+        return response.text()
+    }).then(function(data) {
+        content.innerHTML = data
+        save.disabled = true
+        text2foo()
+    })
+}
+
+function put(filename, text) {
+    var url = '/files?name='+filename
+    fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/text'
+        },
+        body: text
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Network response error')
+        }
+        return response.json()
+    }).then(data => {
+        console.log('file updated:', data);
+        save.disabled = true
+        cmdinfo.innerHTML = filename+" saved"
+    }).catch(error => {
+        console.error('a problem occured during saving', error);
+        cmdinfo.innerHTML = "<span style='color:red'>Error: File '"+filename+"' could not be saved.</span>"
+    })
+}
+
+list_files(url='list')
+if (filepath.value) open_file()
+</script>
+
+</body>
+</html>
