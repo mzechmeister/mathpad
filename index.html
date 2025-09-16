@@ -8,10 +8,13 @@
 <link rel="stylesheet" type="text/css" href=" https://cdn.jsdelivr.net/npm/mathquill@0.10.1-a/build/mathquill.min.css">
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1-a/build/mathquill.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/light/style.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"/>
 </head>
 <style>
+/* svg from https://phosphoricons.com */
 #choose_file {
-    background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 22 16'><text x='0' y='14'>🗁</text></svg>") no-repeat;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><path d="M32,208V64a8,8,0,0,1,8-8H93.33a8,8,0,0,1,4.8,1.6L128,80h72a8,8,0,0,1,8,8v24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><path d="M32,208l30.18-90.53A8,8,0,0,1,69.77,112H232a8,8,0,0,1,7.59,10.53L211.09,208Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>') no-repeat;
     color: transparent;
     border: 1px solid grey;
     border-radius: 4px;
@@ -20,15 +23,25 @@
 .menu * {
     font-size: 20px;
 }
+i {
+    vertical-align: text-bottom;
+}
+button {
+    border: none;
+    border-radius: 4px;
+    padding: 0px 4px;
+}
 </style>
 
 <body>
-<div class="menu" style="background: #eee; padding: 1px 1ch;">
+<div class="menu" style="background: #eee; display: flex; padding: 1px 1ch;">
+<button title="Upload"><i class="ph-light ph-upload"></i></button>
 <select id="choose_file" onclick="list_files(url='list'); this.value = filepath.value" onchange="filepath.value = this.value; open_file()" style="width: 25px;">
   </select><input type="entry" id="filepath" oninput="save.disabled = false">
-  <input id="save" type="button" onclick="cmdinfo.innerHTML = 'saving '+filepath.value; put(filepath.value, foo2text())" value="🖫 save">
-  <a href="mathpad.txt" download='mathpad.txt' id="download_link" onmousedown='document.getElementById("download_link").href = "data:text/plain," + encodeURI(foo2text());' style="text-decoration: none;color: black;">⭳</a>
-  <a href="https://github.com/mzechmeister/mathpad" style="float: right;"><img src="https://github.com/favicon.ico" style="vertical-align: middle; height: 20px;"></a>
+  <button id="save" type="button" title="save on server" onclick="cmdinfo.innerHTML = 'saving '+filepath.value; put(filepath.value, foo2text())"><i class="ph-light ph-floppy-disk"></i> save</button>
+  <button><a href="mathpad.txt" download='mathpad.txt' id="download_link" title="Download" onmousedown='document.getElementById("download_link").href = "data:text/plain," + encodeURI(foo2text());' style="text-decoration: none;color: black;"><i class="ph-light ph-download"></i></a></button>
+  <div style="flex: 1 0 auto"></div>
+  <button id="bar" style="float: right;"><a href="https://github.com/mzechmeister/mathpad" title="github" style="  color: inherit; text-decoration: inherit;"><i class="ph-fill ph-github-logo"></i></a></button>
 </div>
 
 <p id="foo" contenteditable="true" style="white-space: pre-wrap;">type two $ to enter mathmode</p>
