@@ -35,7 +35,7 @@ button {
 
 <body>
 <div class="menu" style="background: #eee; display: flex; padding: 1px 1ch;">
-<button title="Upload"><i class="ph-light ph-upload"></i></button>
+<button title="Upload" onclick="load_file()"><i class="ph-light ph-upload"></i></button>
 <select id="choose_file" onclick="list_files(url='list'); this.value = filepath.value" onchange="filepath.value = this.value; open_file()" style="width: 25px;">
   </select><input type="entry" id="filepath" oninput="save.disabled = false">
   <button id="save" type="button" title="save on server" onclick="cmdinfo.innerHTML = 'saving '+filepath.value; put(filepath.value, foo2text())"><i class="ph-light ph-floppy-disk"></i> save</button>
@@ -50,6 +50,22 @@ LaTeX: <code id="content"></code>
 <div id="cmdinfo" style="background: #eee;padding: 0ch 1ch; font-family: 'Mono'"></div>
 
 <script>
+
+function load_file() {
+    input = document.createElement('input');
+    input.type = 'file'
+    input.onchange = e => {
+        var file = e.target.files[0]
+        var reader = new FileReader()
+        reader.readAsText(file,'UTF-8')
+        reader.onload = readerEvent => {
+            var textcontent = readerEvent.target.result
+            content.innerHTML = textcontent
+            text2foo()
+        }
+    }
+    input.click()
+}
 
 function foo2text() {
     text = ''
