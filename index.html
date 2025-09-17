@@ -31,6 +31,9 @@ button {
     border-radius: 4px;
     padding: 0px 4px;
 }
+.ph-check-circle {
+    color: green;
+}
 </style>
 
 <body>
@@ -40,8 +43,10 @@ button {
   </select><input type="entry" id="filepath" oninput="save.disabled = false">
   <button id="save" type="button" title="save on server" onclick="cmdinfo.innerHTML = 'saving '+filepath.value; put(filepath.value, foo2text())"><i class="ph-light ph-floppy-disk"></i> save</button>
   <button><a href="mathpad.txt" download='mathpad.txt' id="download_link" title="Download" onmousedown='document.getElementById("download_link").href = "data:text/plain," + encodeURI(foo2text());' style="text-decoration: none;color: black;"><i class="ph-light ph-download"></i></a></button>
+  <div style="width: 20px"></div>
+  <button id="clipboard" title="copy to clipboard" onclick="copy()"><i class="ph-light ph-copy"></i></button>
   <div style="flex: 1 0 auto"></div>
-  <button id="bar" style="float: right;"><a href="https://github.com/mzechmeister/mathpad" title="github" style="  color: inherit; text-decoration: inherit;"><i class="ph-fill ph-github-logo"></i></a></button>
+  <button id="bar"><a href="https://github.com/mzechmeister/mathpad" title="github" style="color: inherit; text-decoration: inherit;"><i class="ph-fill ph-github-logo"></i></a></button>
 </div>
 
 <p id="foo" contenteditable="true" style="white-space: pre-wrap;">type two $ to enter mathmode</p>
@@ -50,6 +55,15 @@ LaTeX: <code id="content"></code>
 <div id="cmdinfo" style="background: #eee;padding: 0ch 1ch; font-family: 'Mono'"></div>
 
 <script>
+function copy() {
+    content.innerHTML = foo2text()
+    window.getSelection().selectAllChildren(content)
+    document.execCommand('copy')
+    clipboard.firstChild.classList.add('ph-fill', 'ph-check-circle')
+    clipboard.firstChild.classList.remove('ph-light', 'ph-copy')
+    setTimeout(() => {clipboard.firstChild.classList.remove('ph-fill', 'ph-check-circle');
+                      clipboard.firstChild.classList.add('ph-light', 'ph-copy')}, 2000)
+}
 
 function load_file() {
     input = document.createElement('input');
