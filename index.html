@@ -178,61 +178,80 @@ function set_caret(elem, pos) {
     sel.addRange(range)
 }
 
-function tabulate_files(data) {
-    if (JSON.stringify([...choose_file.options].map(o => o.value)) == JSON.stringify((data.map(x => x.name)))) return
+function tabulate_files(filenames) {
+    if (JSON.stringify([...choose_file.options].map(o => o.value)) == JSON.stringify(filenames)) return
     choose_file.innerHTML = ''
-    for (x of data) {
+    for (name of filenames) {
         opt = document.createElement("option")
-        opt.value = x.name
-        opt.innerHTML = x.name
+        opt.value = name
+        opt.innerHTML = name
         choose_file.append(opt)
     }
 }
 
+server = false   // toggle between python server and localStorage in webbrowser
+
 function list_files(url="list") {
-    fetch(url).then(function(response) {
-        return response.json()
-    }).then(function(data) {
-        tabulate_files(data)
-    })
+    if (server) {
+        fetch(url).then(function(response) {
+            return response.json()
+        }).then(function(data) {
+            tabulate_files(data.map(x => x.name))
+        })
+    } else {
+        tabulate_files(Object.keys(localStorage))
+    }
 }
 
 function open_file() {
     cmdinfo.innerHTML = 'reading ' + filepath.value
-    get('data/'+filepath.value)
+    get((server ? 'data/' : '') + filepath.value)
+}
+
+function display_data(data) {
+    content.innerHTML = data
+    save.disabled = true
+    text2foo()
 }
 
 function get(filename) {
-    fetch(filename, {cache: "no-store"}).then(function(response) {
-        return response.text()
-    }).then(function(data) {
-        content.innerHTML = data
-        save.disabled = true
-        text2foo()
-    })
+    if (server) {
+        fetch(filename, {cache: "no-store"}).then(function(response) {
+            return response.text()
+        }).then(function(data) {
+            display_data(data)
+        })
+    } else {
+        display_data(localStorage[filename])
+    }
 }
 
 function put(filename, text) {
-    var url = '/files?name='+filename
-    fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/text'
-        },
-        body: text
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error('Network response error')
-        }
-        return response.json()
-    }).then(data => {
-        console.log('file updated:', data);
-        save.disabled = true
-        cmdinfo.innerHTML = filename+" saved"
-    }).catch(error => {
-        console.error('a problem occured during saving', error);
-        cmdinfo.innerHTML = "<span style='color:red'>Error: File '"+filename+"' could not be saved.</span>"
-    })
+    if (server) {
+        var url = '/files?name='+filename
+        fetch(url, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/text'
+            },
+            body: text
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response error')
+            }
+            return response.json()
+        }).then(data => {
+            console.log('file updated:', data);
+            save.disabled = true
+            cmdinfo.innerHTML = filename+" saved"
+        }).catch(error => {
+            console.error('a problem occured during saving', error);
+            cmdinfo.innerHTML = "<span style='color:red'>Error: File '"+filename+"' could not be saved.</span>"
+        })
+    } else {
+        localStorage[filename] = text
+    }
+
 }
 
 list_files(url='list')
