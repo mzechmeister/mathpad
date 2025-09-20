@@ -34,6 +34,9 @@ button {
 .ph-check-circle {
     color: green;
 }
+#cb_server:not(:checked) + label {
+    color: grey;
+}
 </style>
 
 <body>
@@ -41,8 +44,10 @@ button {
 <button title="Upload" onclick="load_file()"><i class="ph-light ph-upload"></i></button>
 <select id="choose_file" onclick="list_files(url='list'); this.value = filepath.value" onchange="filepath.value = this.value; open_file()" style="width: 25px;">
   </select><input type="entry" id="filepath" oninput="save.disabled = false">
-  <button id="save" type="button" title="save on server" onclick="cmdinfo.innerHTML = 'saving '+filepath.value; put(filepath.value, foo2text())"><i class="ph-light ph-floppy-disk"></i> save</button>
+  <button id="save" type="button" title="save on server" onclick="cmdinfo.innerHTML = 'saving '+filepath.value  + (cb_server.checked ? ' on disk' : ' in localStorage'); put(filepath.value, foo2text())"><i class="ph-light ph-floppy-disk"></i> save</button>
   <button><a href="mathpad.txt" download='mathpad.txt' id="download_link" title="Download" onmousedown='document.getElementById("download_link").href = "data:text/plain," + encodeURI(foo2text());' style="text-decoration: none;color: black;"><i class="ph-light ph-download"></i></a></button>
+  <button id="trash" type="button" title="delete file" onclick="delete_file(filepath.value)"><i class="ph-light ph-trash"></i></button>
+  <button><input type="checkbox" id="cb_server" style="display: none"><label for="cb_server" title="server"><i class="ph-light ph-hard-drives"></i></label></button>
   <div style="width: 20px"></div>
   <button id="clipboard" title="copy to clipboard" onclick="copy()"><i class="ph-light ph-copy"></i></button>
   <div style="flex: 1 0 auto"></div>
@@ -189,10 +194,8 @@ function tabulate_files(filenames) {
     }
 }
 
-server = false   // toggle between python server and localStorage in webbrowser
-
 function list_files(url="list") {
-    if (server) {
+    if (cb_server.checked) {
         fetch(url).then(function(response) {
             return response.json()
         }).then(function(data) {
@@ -204,8 +207,33 @@ function list_files(url="list") {
 }
 
 function open_file() {
-    cmdinfo.innerHTML = 'reading ' + filepath.value
-    get((server ? 'data/' : '') + filepath.value)
+    cmdinfo.innerHTML = 'reading ' + filepath.value + ' from ' + (cb_server.checked ? 'disk' : 'localStorage')
+    get((cb_server.checked ? 'data/' : '') + filepath.value)
+}
+
+function delete_file(filename) {
+    var msg_ok = () =>  cmdinfo.innerHTML = filename+" deleted"
+    if (cb_server.checked) {
+        var url = '/files?name='+filename
+        fetch(url, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/text'
+            },
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response error')
+            } else {
+                msg_ok()
+            }
+        }).catch(error => {
+            console.error('a problem occured during deleting', error);
+            cmdinfo.innerHTML = "<span style='color:red'>Error: File '"+filename+"' could not be deleted.</span>"
+        })
+    } else {
+        localStorage.removeItem(filename)
+        msg_ok()
+    }
 }
 
 function display_data(data) {
@@ -215,7 +243,7 @@ function display_data(data) {
 }
 
 function get(filename) {
-    if (server) {
+    if (cb_server.checked) {
         fetch(filename, {cache: "no-store"}).then(function(response) {
             return response.text()
         }).then(function(data) {
@@ -227,7 +255,7 @@ function get(filename) {
 }
 
 function put(filename, text) {
-    if (server) {
+    if (cb_server.checked) {
         var url = '/files?name='+filename
         fetch(url, {
             method: 'PUT',
