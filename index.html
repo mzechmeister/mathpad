@@ -23,6 +23,9 @@
 .menu * {
     font-size: 20px;
 }
+#choose_file * {
+    font-size: 15px;
+}
 i {
     vertical-align: text-bottom;
 }
@@ -42,12 +45,13 @@ button {
 <body>
 <div class="menu" style="background: #eee; display: flex; padding: 1px 1ch;">
 <button title="Upload" onclick="load_file()"><i class="ph-light ph-upload"></i></button>
-<select id="choose_file" onclick="list_files(url='list'); this.value = filepath.value" onchange="filepath.value = this.value; open_file()" style="width: 25px;">
-  </select><input type="entry" id="filepath" oninput="save.disabled = false">
+<select id="choose_file" onclick="list_files(url='list');  this.value = (cb_server.checked ? 'server' : 'cache') + '_files '+ filepath.value" onchange="[optgroup, filepath.value] = this.value.split(' '); cb_server.checked = optgroup == 'server_files'; open_file()" style="width: 25px;">
+  <optgroup id="cache_files" label="localStorage">
+  <optgroup id="server_files" label="server">
+  </select><button><input type="checkbox" id="cb_server" style="display: none"><label for="cb_server" title="server"><i class="ph-light ph-hard-drives"></i></label></button><input type="entry" id="filepath" oninput="save.disabled = false">
   <button id="save" type="button" title="save on server" onclick="cmdinfo.innerHTML = 'saving '+filepath.value  + (cb_server.checked ? ' on disk' : ' in localStorage'); put(filepath.value, foo2text())"><i class="ph-light ph-floppy-disk"></i> save</button>
   <button><a href="mathpad.txt" download='mathpad.txt' id="download_link" title="Download" onmousedown='document.getElementById("download_link").href = "data:text/plain," + encodeURI(foo2text());' style="text-decoration: none;color: black;"><i class="ph-light ph-download"></i></a></button>
   <button id="trash" type="button" title="delete file" onclick="delete_file(filepath.value)"><i class="ph-light ph-trash"></i></button>
-  <button><input type="checkbox" id="cb_server" style="display: none"><label for="cb_server" title="server"><i class="ph-light ph-hard-drives"></i></label></button>
   <div style="width: 20px"></div>
   <button id="clipboard" title="copy to clipboard" onclick="copy()"><i class="ph-light ph-copy"></i></button>
   <div style="flex: 1 0 auto"></div>
@@ -183,27 +187,24 @@ function set_caret(elem, pos) {
     sel.addRange(range)
 }
 
-function tabulate_files(filenames) {
-    if (JSON.stringify([...choose_file.options].map(o => o.value)) == JSON.stringify(filenames)) return
-    choose_file.innerHTML = ''
+function tabulate_files(filenames, optgroup) {
+    if (JSON.stringify([...optgroup.children].map(x => x.value)) == JSON.stringify(filenames.map(x => optgroup.id +" " +x))) return
+    optgroup.innerHTML = ''
     for (name of filenames) {
         opt = document.createElement("option")
-        opt.value = name
-        opt.innerHTML = name
-        choose_file.append(opt)
+        opt.value = optgroup.id + " " + name
+        opt.innerHTML += name
+        optgroup.append(opt)
     }
 }
 
 function list_files(url="list") {
-    if (cb_server.checked) {
-        fetch(url).then(function(response) {
-            return response.json()
-        }).then(function(data) {
-            tabulate_files(data.map(x => x.name))
-        })
-    } else {
-        tabulate_files(Object.keys(localStorage))
-    }
+    tabulate_files(Object.keys(localStorage), cache_files)
+    fetch(url).then(function(response) {
+        return response.json()
+    }).then(function(data) {
+        tabulate_files(data.map(x => x.name), server_files)
+    })
 }
 
 function open_file() {
@@ -255,6 +256,12 @@ function get(filename) {
 }
 
 function put(filename, text) {
+    save_info = data => {
+        console.log('file', filename, 'updated:', data)
+        save.disabled = true
+        cmdinfo.innerHTML = filename + " saved"
+    }
+
     if (cb_server.checked) {
         var url = '/files?name='+filename
         fetch(url, {
@@ -268,16 +275,13 @@ function put(filename, text) {
                 throw new Error('Network response error')
             }
             return response.json()
-        }).then(data => {
-            console.log('file updated:', data);
-            save.disabled = true
-            cmdinfo.innerHTML = filename+" saved"
-        }).catch(error => {
+        }).then(save_info).catch(error => {
             console.error('a problem occured during saving', error);
             cmdinfo.innerHTML = "<span style='color:red'>Error: File '"+filename+"' could not be saved.</span>"
         })
     } else {
         localStorage[filename] = text
+        save_info(text)
     }
 
 }
