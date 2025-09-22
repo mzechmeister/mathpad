@@ -124,13 +124,14 @@ function foo2text() {
 function text2foo() {
     foo.innerHTML = ''
     for (const [i,x] of content.innerHTML.split("$").entries()) {
-        if (i%2) {aa = create_mq(x)}
+        if (i%2) {aa = create_mq()}
         else {aa = document.createTextNode(x)}
         foo.append(aa)
+        if (aa.editor) aa.editor.latex(x)  // Seems only after append, the brackets in the inital expression are rendered properly.
     }
 }
 
-function create_mq(contenttext='') {
+function create_mq() {
     mqSpan = document.createElement('span')
     var mq = MQ.MathField(mqSpan, {
                spaceBehavesLikeTab: true, // configurable
@@ -140,7 +141,6 @@ function create_mq(contenttext='') {
                    }
                }
     })
-    if (contenttext) mq.latex(contenttext)
     mqSpan.editor = mq
     mqSpan.onfocus = () => content.innerHTML = mq.latex()
     return mqSpan
