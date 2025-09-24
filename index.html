@@ -18,7 +18,7 @@ body {
   margin: 0;
   min-height: 100vh;
 }
-body > * {
+.menu, #cmdinfo, #content, #foo {
   padding: 1ch;
 }
 /* svg from https://phosphoricons.com */
@@ -49,8 +49,11 @@ i {
 #cb_server:not(:checked) + label {
     color: grey;
 }
-#setting:not(:checked) + #config_tab {
+#setting:not(:checked) ~ div #config_tab {
     display: none;
+}
+#setting:checked ~ .menu [title=settings] {
+    background: #ccc;
 }
 #fx, #fx *  {
     font-family: Times;
@@ -70,6 +73,7 @@ i {
 </style>
 
 <body>
+<input type="checkbox" id="setting" style="display: none">
 <div class="menu" style="background: #eee; display: flex; padding: 1px 1ch;">
 <button title="Upload" onclick="load_file()"><i class="ph-light ph-upload"></i></button>
 <select id="choose_file" onclick="list_files(url='list');  this.value = (cb_server.checked ? 'server' : 'cache') + '_files '+ filepath.value" onchange="[optgroup, filepath.value] = this.value.split(' '); cb_server.checked = optgroup == 'server_files'; open_file()" style="width: 25px;">
@@ -88,14 +92,15 @@ i {
   <button><a href="https://github.com/mzechmeister/mathpad" title="MathPad @ github" style="color: inherit; text-decoration: inherit;"><i class="ph-fill ph-github-logo"></i></a></button>
 </div>
 
-<input type="checkbox" id="setting" style="display: none">
-<div id="config_tab" style="background: #eee; padding: 1ch">
+<div>
+<div id="config_tab" style="background: #eee; margin: 10px; padding: 1ch; position: absolute; right: 2ch; z-index: 4">
   MathQuill configs
   <ul>
     <li>autoCommands: <input id="autoCommands" type="entry" value="alpha beta delta gamma pi sigma theta sqrt sum int" style="width: 400px">
     <li>autoOperatorNames: <input id="autoOperatorNames" type="entry" value="" style="width: 400px">
   </ul>
   <button onclick="mq_config()" style="margin: 0 auto; display: block;">Apply</button>
+</div>
 </div>
 
 <p id="foo" contenteditable="true" style="white-space: pre-wrap; flex: 1"></p>
