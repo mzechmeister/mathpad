@@ -218,9 +218,16 @@ function insert_math() {
 }
 
 // handle cursor transition into and out of MQ
-foo.addEventListener("keydown", e=> {
+foo.addEventListener("keydown", e => {
     mqcursor = document.querySelector(".mq-cursor")
+    if (mqcursor) mqroot = mqcursor.closest('.mq-root-block')
     sel = window.getSelection()
+    if ((mqcursor && e.key=="Backspace" && mqroot.firstChild == mqcursor) ||
+         (mqcursor && e.key=="Delete" && mqroot.lastChild == mqcursor)) {
+                mqspan = mqroot.parentElement
+                sel.setBaseAndExtent(mqspan.previousSibling, mqspan.previousSibling.length, mqspan.nextSibling, 0)
+                document.execCommand("insertText", false, '')
+    }
     if (e.key=="ArrowLeft") {
         if (mqcursor) {
             if (mqcursor.closest('.mq-root-block').firstChild == mqcursor) {
