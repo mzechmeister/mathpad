@@ -223,7 +223,7 @@ foo.addEventListener("keydown", e=> {
     sel = window.getSelection()
     if (e.key=="ArrowLeft") {
         if (mqcursor) {
-            if (mqcursor.parentElement.firstChild == mqcursor) {
+            if (mqcursor.closest('.mq-root-block').firstChild == mqcursor) {
                 foo.focus()
                 prev = e.target.parentElement.parentElement.previousSibling
                 set_caret(prev, prev.length)
@@ -240,7 +240,7 @@ foo.addEventListener("keydown", e=> {
     }
     if (e.key=="ArrowRight") {
         if (mqcursor) {
-            if (mqcursor.parentElement.lastChild == mqcursor) {
+            if (mqcursor.closest('.mq-root-block').lastChild == mqcursor) {
                 foo.focus()
                 next = e.target.parentElement.parentElement.nextSibling
                 set_caret(next, 0)
