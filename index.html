@@ -49,7 +49,7 @@ i {
 #cb_server:not(:checked) + label {
     color: grey;
 }
-#setting:not(:checked) ~ div {
+#setting:not(:checked) ~ div:has(#config_tab) {
     display: none;
 }
 #setting:checked ~ .menu [title=settings] {
@@ -73,9 +73,23 @@ i {
 .merge, #config_tab > b {
     grid-column: span 2;
 }
+#config_tab label {
+    grid-column: 2;
+    user-select: none;
+}
+#show_latex,
+#show_latex:not(:checked) ~ #content,
+#show_latex:checked ~ div #config_tab label :not(:checked),
+#show_latex:not(:checked) ~ div #config_tab label :checked {
+    display: none;
+}
+#config_tab label > input {
+  pointer-events: none
+}
 </style>
 
 <body>
+<input type="checkbox" id="show_latex">
 <input type="checkbox" id="setting" style="display: none">
 <div class="menu" style="background: #eee; display: flex; padding: 1px 1ch;">
 <button title="Upload" onclick="load_file()"><i class="ph-light ph-upload"></i></button>
@@ -101,6 +115,8 @@ i {
     <b>MathQuill configs</b>
     autoCommands: <input id="autoCommands" type="entry" value="alpha beta delta gamma pi sigma theta sqrt sum int" style="width: 400px">
     autoOperatorNames: <input id="autoOperatorNames" type="entry" value="" style="width: 400px">
+    <b>Display</b>
+    <label for="show_latex"><input type="checkbox" checked><input type="checkbox"> show LaTeX</label>
   <button class="merge" onclick="mq_config()" style="margin: 0 auto; display: block;">Apply</button>
 </div>
 </div>
