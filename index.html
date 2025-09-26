@@ -49,7 +49,7 @@ i {
 #cb_server:not(:checked) + label {
     color: grey;
 }
-#setting:not(:checked) ~ div #config_tab {
+#setting:not(:checked) ~ div {
     display: none;
 }
 #setting:checked ~ .menu [title=settings] {
@@ -69,6 +69,9 @@ i {
     border-left-color: #aaa;
     border-top-color: #aaa;
     padding: 5px;
+}
+.merge, #config_tab > b {
+    grid-column: span 2;
 }
 </style>
 
@@ -93,13 +96,12 @@ i {
 </div>
 
 <div>
-<div id="config_tab" style="background: #eee; margin: 10px; padding: 1ch; position: absolute; right: 2ch; z-index: 4">
-  MathQuill configs
-  <ul>
-    <li>autoCommands: <input id="autoCommands" type="entry" value="alpha beta delta gamma pi sigma theta sqrt sum int" style="width: 400px">
-    <li>autoOperatorNames: <input id="autoOperatorNames" type="entry" value="" style="width: 400px">
-  </ul>
-  <button onclick="mq_config()" style="margin: 0 auto; display: block;">Apply</button>
+<div id="config_tab" style="background: #eee; margin: 10px; padding: 1ch; position: absolute; right: 2ch; z-index: 4;
+   display: grid; grid-template-columns: auto auto; grid-gap: 10px;">
+    <b>MathQuill configs</b>
+    autoCommands: <input id="autoCommands" type="entry" value="alpha beta delta gamma pi sigma theta sqrt sum int" style="width: 400px">
+    autoOperatorNames: <input id="autoOperatorNames" type="entry" value="" style="width: 400px">
+  <button class="merge" onclick="mq_config()" style="margin: 0 auto; display: block;">Apply</button>
 </div>
 </div>
 
