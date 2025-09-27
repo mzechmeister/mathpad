@@ -255,40 +255,48 @@ foo.addEventListener("keydown", e => {
         document.execCommand("insertText", false, '')
     }
     if (e.key=="ArrowLeft") {
-        if (mqcursor && mqroot.firstChild == mqcursor) {
+        if (mqcursor) {
+            if (mqroot.firstChild == mqcursor) {
                 foo.focus()
                 prev = e.target.parentElement.parentElement.previousSibling
                 set_caret(prev, prev.length)
-        } else if (e.target.tagName == "MATH-FIELD" && e.target.selection.ranges[0][0] == 0) {
+            }
+        } else if (e.target.tagName == "MATH-FIELD") {
+            if (e.target.selection.ranges[0][0] == 0) {
                 foo.focus()
                 prev = e.target.previousSibling
                 set_caret(prev, prev.length)
+            }
         } else {
             prev = sel.anchorNode.previousElementSibling
-            if (prev && sel.anchorOffset==0 && prev.classList.contains("mq-editable-field")) {
+            if (prev && prev.classList.contains("mq-editable-field") && sel.anchorOffset == 0) {
                 prev.editor.focus()
                 prev.editor.moveToRightEnd()
-            } else if (prev && sel.anchorOffset==0 && prev.tagName == "MATH-FIELD") {
+            } else if (prev && prev.tagName == "MATH-FIELD" && sel.anchorOffset == 0) {
                 prev.focus()
                 prev.executeCommand("moveToMathfieldEnd")
             }
         }
     }
     if (e.key=="ArrowRight") {
-        if (mqcursor&& mqroot.lastChild == mqcursor) {
+        if (mqcursor) {
+            if (mqroot.lastChild == mqcursor) {
                 foo.focus()
                 next = e.target.parentElement.parentElement.nextSibling
                 set_caret(next, 0)
-        } else if (e.target.tagName == "MATH-FIELD" && e.target.selection.ranges[0][0] == e.target.lastOffset) {
+            }
+        } else if (e.target.tagName == "MATH-FIELD") {
+            if (e.target.selection.ranges[0][0] == e.target.lastOffset) {
                 foo.focus()
                 next = e.target.nextSibling
                 set_caret(next, 0)
+            }
         } else {
             next = sel.anchorNode.nextElementSibling;
-            if (next && sel.anchorOffset==sel.anchorNode.data.length && next.classList.contains("mq-editable-field")) {
+            if (next && next.classList.contains("mq-editable-field") && sel.anchorOffset == sel.anchorNode.data.length) {
                 next.editor.focus()
                 next.editor.moveToLeftEnd()
-            } else if (next && sel.anchorOffset==sel.anchorNode.data.length && next.tagName == "MATH-FIELD") {
+            } else if (next && next.tagName == "MATH-FIELD" && sel.anchorOffset == sel.anchorNode.data.length) {
                 next.focus()
                 next.executeCommand("moveToMathfieldStart")
             }
