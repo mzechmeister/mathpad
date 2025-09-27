@@ -421,7 +421,7 @@ function put(filename, text) {
 MQ = MathQuill.getInterface(2)
 mq_config()
 
-foo.onfocus = () => setting.checked = false
+foo.addEventListener('focus', () => setting.checked = false)
 
 list_files(url='list')
 filepath.value ? open_file() : text2foo()
