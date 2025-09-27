@@ -179,7 +179,7 @@ function foo2text() {
     text = ''
     for (x of [...foo.childNodes]) {
         if (x.editor) {text += '$'+x.editor.latex()+'$'}
-        else if (x._mathfield) {text += '$'+x.innerHTML+'$'}
+        else if (x._mathfield) {text += '$'+x.value+'$'}
         else if (x.textContent) text += x.textContent
     }
     return text
@@ -198,6 +198,7 @@ function text2foo() {
 
 function create_ml() {
     var mf = document.createElement('math-field')
+    mf.oninput = () => content.innerHTML = mf.value
     mf.addEventListener('mount', () => {
         // override shadow-root style
         var extraSheet = new CSSStyleSheet()
