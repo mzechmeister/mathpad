@@ -85,7 +85,7 @@ i {
     display: none;
 }
 #config_tab label > input {
-  pointer-events: none
+    pointer-events: none
 }
 math-field {
     min-width: 1ch;
@@ -136,7 +136,7 @@ math-field::part(virtual-keyboard-toggle) {
 
 <p id="foo" contenteditable="true" style="white-space: pre-wrap; flex: 1"></p>
 
-<code id="content">Type two dollar signs to enter math mode. Then you can write LaTeX equations like $f\left(x\right)=\exp\left(\frac{1}{2}\left(\frac{x}{\sigma}\right)^2\right)$.</code>
+<code id="content">Type two dollar signs to enter math mode. Then you can write LaTeX equations like $f\left(x\right)=\exp\left(-\frac{1}{2}\left(\frac{x}{\sigma}\right)^2\right)$.</code>
 <div id="cmdinfo" style="padding: 0ch 1ch; font-family: 'Mono'"></div>
 
 <script>
@@ -190,7 +190,7 @@ function text2foo() {
         if (i%2) {aa = create_math()}
         else {aa = document.createTextNode(x)}
         foo.append(aa)
-        if (aa.editor) aa.editor.latex(x)  // Seems only after append, the brackets in the inital expression are rendered properly.
+        if (aa.editor) aa.editor.latex(x)  // Seems to work only after append, the brackets in the inital expression are rendered properly.
         if (aa.tagName == "MATH-FIELD") aa.innerHTML = x
     }
 }
@@ -225,10 +225,10 @@ create_math = (e) => gg[document.querySelector('input[name="math_editor"]:checke
 foo.oninput = (e) => {
     save.disabled = false
     sel = window.getSelection()
-    range = sel.getRangeAt(0);
+    range = sel.getRangeAt(0)
     if (e.data == '$' && range.startContainer.textContent.substr(range.startOffset-2,2)  == '$$') {
         range.setStart(range.startContainer, range.startOffset-2)
-        range.deleteContents();
+        range.deleteContents()
         mqSpan = create_math()
         range.insertNode(mqSpan)
         mqSpan.focus()
@@ -255,20 +255,16 @@ foo.addEventListener("keydown", e => {
         document.execCommand("insertText", false, '')
     }
     if (e.key=="ArrowLeft") {
-        if (mqcursor) {
-            if (mqroot.firstChild == mqcursor) {
+        if (mqcursor && mqroot.firstChild == mqcursor) {
                 foo.focus()
                 prev = e.target.parentElement.parentElement.previousSibling
                 set_caret(prev, prev.length)
-            }
-            return
         } else if (e.target.tagName == "MATH-FIELD" && e.target.selection.ranges[0][0] == 0) {
                 foo.focus()
                 prev = e.target.previousSibling
                 set_caret(prev, prev.length)
-        }
-        else {
-            prev = sel.anchorNode.previousElementSibling;
+        } else {
+            prev = sel.anchorNode.previousElementSibling
             if (prev && sel.anchorOffset==0 && prev.classList.contains("mq-editable-field")) {
                 prev.editor.focus()
                 prev.editor.moveToRightEnd()
@@ -279,19 +275,15 @@ foo.addEventListener("keydown", e => {
         }
     }
     if (e.key=="ArrowRight") {
-        if (mqcursor) {
-            if (mqroot.lastChild == mqcursor) {
+        if (mqcursor&& mqroot.lastChild == mqcursor) {
                 foo.focus()
                 next = e.target.parentElement.parentElement.nextSibling
                 set_caret(next, 0)
-            }
-            return
         } else if (e.target.tagName == "MATH-FIELD" && e.target.selection.ranges[0][0] == e.target.lastOffset) {
                 foo.focus()
                 next = e.target.nextSibling
                 set_caret(next, 0)
-        }
-        else {
+        } else {
             next = sel.anchorNode.nextElementSibling;
             if (next && sel.anchorOffset==sel.anchorNode.data.length && next.classList.contains("mq-editable-field")) {
                 next.editor.focus()
