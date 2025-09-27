@@ -8,6 +8,7 @@
 <link rel="stylesheet" type="text/css" href=" https://cdn.jsdelivr.net/npm/mathquill@0.10.1-a/build/mathquill.min.css">
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathquill@0.10.1-a/build/mathquill.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/light/style.css"/>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"/>
 </head>
@@ -73,7 +74,7 @@ i {
 .merge, #config_tab > b {
     grid-column: span 2;
 }
-#config_tab label {
+#config_tab label, #config_tab div {
     grid-column: 2;
     user-select: none;
 }
@@ -85,6 +86,14 @@ i {
 }
 #config_tab label > input {
   pointer-events: none
+}
+math-field {
+    min-width: 1ch;
+    font-size: 1.2rem;
+}
+math-field::part(menu-toggle),
+math-field::part(virtual-keyboard-toggle) {
+    display: none;
 }
 </style>
 
@@ -112,6 +121,10 @@ i {
 <div>
 <div id="config_tab" style="background: #eee; margin: 10px; padding: 1ch; position: absolute; right: 2ch; z-index: 4;
    display: grid; grid-template-columns: auto auto; grid-gap: 10px;">
+    <div>
+      <input type="radio" id="mq" name="math_editor"> <label for="mq">MathQuill</label>
+      <input type="radio" id="ml" name="math_editor" checked> <label for="ml">MathLive</label>
+    </div>
     <b>MathQuill configs</b>
     autoCommands: <input id="autoCommands" type="entry" value="alpha beta delta gamma pi sigma theta sqrt sum int" style="width: 400px">
     autoOperatorNames: <input id="autoOperatorNames" type="entry" value="" style="width: 400px">
@@ -165,6 +178,7 @@ function foo2text() {
     text = ''
     for (x of [...foo.childNodes]) {
         if (x.editor) {text += '$'+x.editor.latex()+'$'}
+        else if (x._mathfield) {text += '$'+x.innerHTML+'$'}
         else if (x.textContent) text += x.textContent
     }
     return text
@@ -173,11 +187,17 @@ function foo2text() {
 function text2foo() {
     foo.innerHTML = ''
     for (const [i,x] of content.innerHTML.split("$").entries()) {
-        if (i%2) {aa = create_mq()}
+        if (i%2) {aa = create_math()}
         else {aa = document.createTextNode(x)}
         foo.append(aa)
         if (aa.editor) aa.editor.latex(x)  // Seems only after append, the brackets in the inital expression are rendered properly.
+        if (aa.tagName == "MATH-FIELD") aa.innerHTML = x
     }
+}
+
+function create_ml() {
+    mf = document.createElement('math-field')
+    return mf
 }
 
 function create_mq() {
@@ -192,8 +212,14 @@ function create_mq() {
     })
     mqSpan.editor = mq
     mqSpan.onfocus = () => content.innerHTML = mq.latex()
+    mqSpan.focus = mqSpan.editor.focus
     return mqSpan
 }
+
+gg = {}
+gg.ml = create_ml
+gg.mq = create_mq
+create_math = (e) => gg[document.querySelector('input[name="math_editor"]:checked').id](e)
 
 // insert mathmode for short cut $$
 foo.oninput = (e) => {
@@ -203,9 +229,9 @@ foo.oninput = (e) => {
     if (e.data == '$' && range.startContainer.textContent.substr(range.startOffset-2,2)  == '$$') {
         range.setStart(range.startContainer, range.startOffset-2)
         range.deleteContents();
-        mqSpan = create_mq()
+        mqSpan = create_math()
         range.insertNode(mqSpan)
-        mqSpan.editor.focus()
+        mqSpan.focus()
     }
 }
 
@@ -223,42 +249,56 @@ foo.addEventListener("keydown", e => {
     if (mqcursor) mqroot = mqcursor.closest('.mq-root-block')
     sel = window.getSelection()
     if ((mqcursor && e.key=="Backspace" && mqroot.firstChild == mqcursor) ||
-         (mqcursor && e.key=="Delete" && mqroot.lastChild == mqcursor)) {
-                mqspan = mqroot.parentElement
-                sel.setBaseAndExtent(mqspan.previousSibling, mqspan.previousSibling.length, mqspan.nextSibling, 0)
-                document.execCommand("insertText", false, '')
+        (mqcursor && e.key=="Delete" && mqroot.lastChild == mqcursor)) {
+        mqspan = mqroot.parentElement
+        sel.setBaseAndExtent(mqspan.previousSibling, mqspan.previousSibling.length, mqspan.nextSibling, 0)
+        document.execCommand("insertText", false, '')
     }
     if (e.key=="ArrowLeft") {
         if (mqcursor) {
-            if (mqcursor.closest('.mq-root-block').firstChild == mqcursor) {
+            if (mqroot.firstChild == mqcursor) {
                 foo.focus()
                 prev = e.target.parentElement.parentElement.previousSibling
                 set_caret(prev, prev.length)
             }
             return
+        } else if (e.target.tagName == "MATH-FIELD" && e.target.selection.ranges[0][0] == 0) {
+                foo.focus()
+                prev = e.target.previousSibling
+                set_caret(prev, prev.length)
         }
         else {
             prev = sel.anchorNode.previousElementSibling;
             if (prev && sel.anchorOffset==0 && prev.classList.contains("mq-editable-field")) {
                 prev.editor.focus()
                 prev.editor.moveToRightEnd()
+            } else if (prev && sel.anchorOffset==0 && prev.tagName == "MATH-FIELD") {
+                prev.focus()
+                prev.executeCommand("moveToMathfieldEnd")
             }
         }
     }
     if (e.key=="ArrowRight") {
         if (mqcursor) {
-            if (mqcursor.closest('.mq-root-block').lastChild == mqcursor) {
+            if (mqroot.lastChild == mqcursor) {
                 foo.focus()
                 next = e.target.parentElement.parentElement.nextSibling
                 set_caret(next, 0)
             }
             return
+        } else if (e.target.tagName == "MATH-FIELD" && e.target.selection.ranges[0][0] == e.target.lastOffset) {
+                foo.focus()
+                next = e.target.nextSibling
+                set_caret(next, 0)
         }
         else {
             next = sel.anchorNode.nextElementSibling;
             if (next && sel.anchorOffset==sel.anchorNode.data.length && next.classList.contains("mq-editable-field")) {
                 next.editor.focus()
                 next.editor.moveToLeftEnd()
+            } else if (next && sel.anchorOffset==sel.anchorNode.data.length && next.tagName == "MATH-FIELD") {
+                next.focus()
+                next.executeCommand("moveToMathfieldStart")
             }
         }
     }
