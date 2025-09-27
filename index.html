@@ -212,7 +212,7 @@ function create_mq() {
     })
     mqSpan.editor = mq
     mqSpan.onfocus = () => content.innerHTML = mq.latex()
-    mqSpan.focus = mqSpan.editor.focus
+    mqSpan.focus = () => mq.focus()
     return mqSpan
 }
 
@@ -408,7 +408,6 @@ function put(filename, text) {
         localStorage[filename] = text
         save_info(text)
     }
-
 }
 
 MQ = MathQuill.getInterface(2)
