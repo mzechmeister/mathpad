@@ -88,8 +88,9 @@ i {
     pointer-events: none
 }
 math-field {
-    min-width: 1ch;
+    border-radius: 0;
     font-size: 1.2rem;
+    min-width: 1ch;
 }
 math-field::part(menu-toggle),
 math-field::part(virtual-keyboard-toggle) {
@@ -98,7 +99,7 @@ math-field::part(virtual-keyboard-toggle) {
 </style>
 
 <body>
-<input type="checkbox" id="show_latex">
+<input type="checkbox" id="show_latex" checked>
 <input type="checkbox" id="setting" style="display: none">
 <div class="menu" style="background: #eee; display: flex; padding: 1px 1ch;">
 <button title="Upload" onclick="load_file()"><i class="ph-light ph-upload"></i></button>
@@ -196,7 +197,13 @@ function text2foo() {
 }
 
 function create_ml() {
-    mf = document.createElement('math-field')
+    var mf = document.createElement('math-field')
+    mf.addEventListener('mount', () => {
+        // override shadow-root style
+        var extraSheet = new CSSStyleSheet()
+        extraSheet.replaceSync(".ML__container, .ML__content {padding: 0px}")
+        mf._internals.shadowRoot.adoptedStyleSheets.push(extraSheet)
+    })
     return mf
 }
 
