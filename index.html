@@ -11,7 +11,6 @@
 <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/light/style.css"/>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"/>
-</head>
 <style>
 body {
   display: flex;
@@ -97,6 +96,7 @@ math-field::part(virtual-keyboard-toggle) {
     display: none;
 }
 </style>
+</head>
 
 <body>
 <input type="checkbox" id="show_latex" checked>
@@ -113,7 +113,7 @@ math-field::part(virtual-keyboard-toggle) {
   <div style="width: 20px"></div>
   <button id="clipboard" title="copy to clipboard" onclick="copy()"><i class="ph-light ph-copy"></i></button>
   <div style="flex: 1 0 auto"></div>
-  <button id="fx" title="insert math" onclick="insert_math()"><i>f</i>(<i>x</i>)</span></button>
+  <button id="fx" title="insert math" onclick="insert_math()"><i>f</i>(<i>x</i>)</button>
   <div style="flex: 1 0 auto"></div>
   <button title="settings"><label for="setting"><i class="ph-light ph-gear-six"></i></label></button>
   <button><a href="https://github.com/mzechmeister/mathpad" title="MathPad @ github" style="color: inherit; text-decoration: inherit;"><i class="ph-fill ph-github-logo"></i></a></button>
