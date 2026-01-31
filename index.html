@@ -101,7 +101,7 @@ math-field::part(virtual-keyboard-toggle) {
 <body>
 <input type="checkbox" id="show_latex" checked>
 <input type="checkbox" id="setting" style="display: none">
-<div class="menu" style="background: #eee; display: flex; padding: 1px 1ch;">
+<div class="menu" style="background: #eee; display: flex; padding: 1px 1ch; position: sticky; top: 0; z-index: 10;">
 <button title="Upload" onclick="load_file()"><i class="ph-light ph-upload"></i></button>
 <select id="choose_file" onclick="list_files(url='list');  this.value = (cb_server.checked ? 'server' : 'cache') + '_files '+ filepath.value" onchange="[optgroup, filepath.value] = this.value.split(' '); cb_server.checked = optgroup == 'server_files'; open_file()" style="width: 25px;">
   <optgroup id="cache_files" label="localStorage">
@@ -138,7 +138,7 @@ math-field::part(virtual-keyboard-toggle) {
 <p id="foo" contenteditable="true" style="white-space: pre-wrap; flex: 1"></p>
 
 <code id="content">Type two dollar signs to enter math mode. Then you can write LaTeX equations like $f\left(x\right)=\exp\left(-\frac{1}{2}\left(\frac{x}{\sigma}\right)^2\right)$.</code>
-<div id="cmdinfo" style="padding: 0ch 1ch; font-family: 'Mono'"></div>
+<div id="cmdinfo" style="padding: 0ch 1ch; font-family: 'Mono'; position: sticky; bottom: 0;"></div>
 
 <script>
 function mq_config() {
